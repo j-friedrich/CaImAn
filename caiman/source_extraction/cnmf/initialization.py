@@ -1938,10 +1938,13 @@ def compute_W(Y, A, C, dims, radius, data_fits_in_memory=True, ssub=1, tsub=1, p
         def process_pixel(p):
             index = get_indices_of_pixels_on_ring(p)
             B = X[index]
+            Xm = B.sum(0)
+            return index, X[p].dot(Xm) / Xm.dot(Xm) * np.ones(len(index), dtype=np.float32)
             tmp = np.array(B.dot(B.T))
             tmp[np.diag_indices(len(tmp))] += np.trace(tmp) * 1e-5
             tmp2 = X[p]
             data = pd_solve(tmp, B.dot(tmp2))
+            import pdb; pdb.set_trace()
             return index, data
     else:
 
@@ -1953,6 +1956,8 @@ def compute_W(Y, A, C, dims, radius, data_fits_in_memory=True, ssub=1, tsub=1, p
                 B = decimate_last_axis(ds(Y), tsub)[index] - \
                     (ds(A)[index].dot(decimate_last_axis(C, tsub)) if A.size > 0 else 0) - \
                     ds(b0).reshape((-1, 1), order='F')[index]
+            Xm = B.sum(0)
+            return index, X[p].dot(Xm) / Xm.dot(Xm) * np.ones(len(index), dtype=np.float32)
             tmp = np.array(B.dot(B.T))
             tmp[np.diag_indices(len(tmp))] += np.trace(tmp) * 1e-5
             if ssub == 1 and tsub == 1:
